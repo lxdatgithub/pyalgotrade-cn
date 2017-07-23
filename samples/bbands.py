@@ -1,6 +1,9 @@
+import os
+
 from pyalgotrade import strategy
 from pyalgotrade import plotter
-from pyalgotrade.tools import yahoofinance
+from pyalgotrade.barfeed import sina_feed as sf
+
 from pyalgotrade.technical import bollinger
 from pyalgotrade.stratanalyzer import sharpe
 
@@ -30,12 +33,15 @@ class BBands(strategy.BacktestingStrategy):
 
 
 def main(plot):
-    instrument = "yhoo"
+    instrument = "FG0"
     bBandsPeriod = 40
 
     # Download the bars.
-    feed = yahoofinance.build_feed([instrument], 2011, 2012, ".")
-
+    # feed = yahoofinance.build_feed([instrument], 2011, 2012, ".")
+    csv_path = os.path.abspath('../histdata/commodity') + '/' + instrument + '.csv'
+    feed = sf.Feed()
+    feed.addBarsFromCSV(instrument, csv_path)
+    # feed = csvfeed.Feed('Date', )
     strat = BBands(feed, instrument, bBandsPeriod)
     sharpeRatioAnalyzer = sharpe.SharpeRatio()
     strat.attachAnalyzer(sharpeRatioAnalyzer)
@@ -46,12 +52,15 @@ def main(plot):
         plt.getInstrumentSubplot(instrument).addDataSeries("middle", strat.getBollingerBands().getMiddleBand())
         plt.getInstrumentSubplot(instrument).addDataSeries("lower", strat.getBollingerBands().getLowerBand())
 
+
     strat.run()
     print "Sharpe ratio: %.2f" % sharpeRatioAnalyzer.getSharpeRatio(0.05)
-
     if plot:
         plt.plot()
+    pass
+
 
 
 if __name__ == "__main__":
     main(True)
+
